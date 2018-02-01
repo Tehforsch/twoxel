@@ -6,6 +6,10 @@ use point::Point;
 pub mod body;
 pub mod shape;
 pub mod collisions;
+pub mod polygon;
+pub mod circle;
+
+use std::f64;
 
 const DT : f64 = 0.01;
 const GRAVITY : f64 = 0.0;
@@ -49,13 +53,29 @@ fn apply_gravity(body : &mut body::Body) {
 
 pub fn initialize_sim() -> Simulation {
     let mut bodies : Vec<body::Body> = vec![];
-    let num_bodies = 2;
-    for i in 0..num_bodies {
+    let num_circles = 0;
+    for i in 0..num_circles {
         let x = 300.0;
         let y = 300.0;
         let mass = 1.0;
         let radius = 100.0;
         bodies.push(body::get_circle(Point{x: x, y: y}, mass, radius));
+    }
+    let num_polygons = 2;
+    for i in 0..num_polygons {
+        let x = 300.0;
+        let y = 300.0;
+        let mass = 1.0;
+        let radius = 100.0;
+        let num_vertices = 4;
+        let mut points = vec![];
+        for i in 0..num_vertices {
+            points.push(Point{
+                x: x + radius * (2.0 * f64::consts::PI * (i as f64) / (num_vertices as f64)).cos(),
+                y: y + radius * (2.0 * f64::consts::PI * (i as f64) / (num_vertices as f64)).sin()
+            });
+        }
+        bodies.push(body::get_polygon(Point{x:x, y:y}, points, mass));
     }
     let mut sim = Simulation::new(bodies);
     sim

@@ -8,6 +8,7 @@ mod point;
 mod simulation;
 mod render;
 
+
 fn main() {
     let opengl = OpenGL::V3_2;
 

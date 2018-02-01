@@ -28,6 +28,14 @@ impl Point {
             y: (self.y + p.y) * 0.5
         }
     }
+
+    pub fn normalized(self) -> Point {
+        return self / self.norm();
+    }
+    
+    pub fn new(x:f64, y:f64) -> Point {
+        Point { x:x, y:y }
+    }
 }
 
 impl Add for Point {
