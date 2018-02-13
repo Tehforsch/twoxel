@@ -34,15 +34,16 @@ impl Polygon {
         [min, max]
     }
     
-    pub fn get_edges(&self) -> Vec<Point> {
-        let mut edges = vec![];
+    pub fn get_normals(&self) -> Vec<Point> {
+        let mut normals = vec![];
         for (x, y) in self.vertices.iter().zip(self.vertices[1..].iter().chain([self.vertices[0]].iter())) {
-            edges.push((*x - *y).normalized().orth())
+            normals.push((*x - *y).normalized().orth())
         }
-        edges
+        normals
     }
 
     pub fn update_pos(&mut self, pos: Point) {
+        self.pos = pos;
         self.vertices = self.offsets.iter().map(|x| (*x) + pos).collect();
     }
 

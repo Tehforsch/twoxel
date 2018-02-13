@@ -16,7 +16,7 @@ const GRAVITY : f64 = 0.0;
 
 pub struct Simulation {
     pub bodies : Vec<body::Body>,
-    collision_handler : collisions::CollisionHandler
+    pub collision_handler : collisions::CollisionHandler
 }
 
 impl Simulation {
@@ -67,7 +67,7 @@ pub fn initialize_sim() -> Simulation {
         let y = 300.0;
         let mass = 1.0;
         let radius = 100.0;
-        let num_vertices = 4;
+        let num_vertices = 4 + i;
         let mut points = vec![];
         for i in 0..num_vertices {
             points.push(Point{
