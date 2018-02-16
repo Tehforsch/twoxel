@@ -14,7 +14,7 @@ pub struct CollisionHandler {
 pub struct Collision {
     pub pos: Point,
     pub depth: f64,
-    pub normal: Point
+    pub normal: Point,
 }
 
 impl CollisionHandler{
@@ -41,6 +41,31 @@ impl CollisionHandler{
             None => {}
         }
     }
+    pub fn resolve_collisions(&mut self, bodies: &mut Vec<Body>) {
+        for i in 1..10 {
+            let slice = &mut bodies[..];
+            let length = slice.len();
+            for i in 1..length {
+                let (first, second) = slice.split_at_mut(i);
+                let first_length = first.len();
+                let mut body1 = &mut first[first_length-1];
+                for mut body2 in second {
+                    let collision = find_collision(body1, body2);
+                    match collision {
+                        Some(coll) => {
+                            self.resolve_collision(body1, body2, coll);
+                        }
+                        Nothing => {}
+                    }
+                }
+            }
+        }
+    }
+    fn resolve_collision(&mut self, body1: &mut Body, body2: &mut Body, collision: Collision) {
+        let relative_impulse = (body1.mass * body1.vel - body2.mass * body2.vel) * collision.normal;
+        body1.apply_impulse(-0.5 * collision.normal * relative_impulse);
+        body2.apply_impulse(0.5 * collision.normal * relative_impulse);
+    }
 }
 
 fn find_collision(body1: &Body, body2: &Body) -> Option<Collision> {
@@ -61,20 +86,24 @@ fn find_collision(body1: &Body, body2: &Body) -> Option<Collision> {
     }
 }
 
+// fn circle_circle(circle1: &Circle, circle2: &Circle) -> Option<Collision> {
+//     let normal = circle1.pos - circle2.pos;
+//     let distance = normal.norm();
+//     let depth = distance - (circle1.radius + circle2.radius);
+//     if depth < 0.0 {
+//         Some(Collision { 
+//             pos: circle1.pos.middle(circle2.pos),
+//             depth: depth,
+//             normal: normal
+//         })
+//     }
+//     else {
+//         None
+//     }
+// }
+
 fn circle_circle(circle1: &Circle, circle2: &Circle) -> Option<Collision> {
-    let normal = circle1.pos - circle2.pos;
-    let distance = normal.norm();
-    let depth = distance - (circle1.radius + circle2.radius);
-    if depth < 0.0 {
-        Some(Collision { 
-            pos: circle1.pos.middle(circle2.pos),
-            depth: depth,
-            normal: normal
-        })
-    }
-    else {
-        None
-    }
+    None
 }
 
 fn polygon_polygon(polygon1: &Polygon, polygon2: &Polygon) -> Option<Collision> {
