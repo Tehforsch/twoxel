@@ -11,4 +11,8 @@ impl Circle {
         let projected = self.pos * normal;
         [projected - self.radius, projected + self.radius]
     }
+
+    pub fn get_moment_of_inertia(&self) -> f64 {
+        return 0.5 * self.radius.powi(2)
+    }
 }

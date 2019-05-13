@@ -1,5 +1,6 @@
 use point::Point;
 
+#[derive(Debug)]
 pub struct Polygon {
     pub pos: Point,
     pub vertices: Vec<Point>,
@@ -8,10 +9,8 @@ pub struct Polygon {
 
 impl Polygon {
     pub fn new(vertices: Vec<Point>) -> Polygon {
-        let pos = Polygon::center_of_mass(&vertices);
+        let pos = Polygon::get_center_of_mass(&vertices);
         let offsets = vertices.iter().map(|x| (*x) - pos).collect();
-        println!("{:?}", vertices);
-        println!("{:?}", offsets);
         Polygon {
             pos: pos,
             vertices: vertices,
@@ -42,14 +41,34 @@ impl Polygon {
         normals
     }
 
-    pub fn update_pos(&mut self, pos: Point) {
+    pub fn update_pos(&mut self, pos: Point, apos: f64) {
         self.pos = pos;
-        self.vertices = self.offsets.iter().map(|x| (*x) + pos).collect();
+        self.vertices = self.offsets.iter().map(|x| ((*x).rotate(apos)) + pos).collect();
     }
 
-    fn center_of_mass(vertices: &Vec<Point>) -> Point {
+    fn get_center_of_mass(vertices: &Vec<Point>) -> Point {
         vertices.iter().fold(Point{x:0.0, y:0.0}, |acc, &x| acc + x) / (vertices.len() as f64)
     }
+
+    pub fn get_moment_of_inertia(&self) -> f64 {
+        let mut inertia = 0.0;
+        for i in 1..self.offsets.len() {
+            let v1 = self.offsets[i];
+            let v2 = self.offsets[(i+1) % self.offsets.len()];
+            inertia += (v1.orth() * v2).abs() * (v1 * v1 + v1 * v2 + v2 * v2);
+        }
+        let mut norm_factor = 0.0;
+        for i in 1..self.offsets.len() {
+            let v1 = self.offsets[i];
+            let v2 = self.offsets[(i+1) % self.offsets.len()];
+            norm_factor += (v1.orth() * v2).abs();
+
+        }
+
+        inertia / (6.0 * norm_factor)
+    // }
+    }
+
 }
 
 #[cfg(test)]

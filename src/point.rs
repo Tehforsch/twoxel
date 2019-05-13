@@ -36,6 +36,13 @@ impl Point {
     pub fn new(x:f64, y:f64) -> Point {
         Point { x:x, y:y }
     }
+
+    pub fn rotate(self, angle: f64) -> Point {
+        Point { 
+            x: self.x * angle.cos() - self.y * angle.sin(),
+            y: self.x * angle.sin() + self.y * angle.cos(),
+        }
+    }
 }
 
 impl Add for Point {
