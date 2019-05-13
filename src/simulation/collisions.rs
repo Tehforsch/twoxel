@@ -5,6 +5,7 @@ use simulation::shape::Shape;
 use simulation::polygon::Polygon;
 use simulation::circle::Circle;
 use point::Point;
+use super::BAUMGARTE_FACTOR;
 
 pub struct CollisionHandler {
     pub collisions: Vec<Collision>
@@ -23,24 +24,26 @@ impl CollisionHandler{
             collisions: vec![]
         }
     }
-    pub fn find_collisions(&mut self, bodies: &mut Vec<Body>) {
-        self.collisions = vec![];
-        let slice = &bodies[..];
-        let length = slice.len();
-        let mut collision = None;
-        for i in 1..length {
-            let (first, second) = slice.split_at(i);
-            let first_length = first.len();
-            let body1 = & first[first_length-1];
-            for body2 in second {
-                collision = find_collision(body1, body2);
-            }
-        }
-        match collision {
-            Some(c) => { self.collisions.push(c); }
-            None => {}
-        }
-    }
+
+    // pub fn find_collisions(&mut self, bodies: &mut Vec<Body>) {
+    //     self.collisions = vec![];
+    //     let slice = &bodies[..];
+    //     let length = slice.len();
+    //     let mut collision = None;
+    //     for i in 1..length {
+    //         let (first, second) = slice.split_at(i);
+    //         let first_length = first.len();
+    //         let body1 = & first[first_length-1];
+    //         for body2 in second {
+    //             collision = find_collision(body1, body2);
+    //         }
+    //     }
+    //     match collision {
+    //         Some(c) => { self.collisions.push(c); }
+    //         None => {}
+    //     }
+    // }
+
     pub fn resolve_collisions(&mut self, bodies: &mut Vec<Body>) {
         let slice = &mut bodies[..];
         let length = slice.len();
@@ -54,20 +57,15 @@ impl CollisionHandler{
                     Some(coll) => {
                         self.resolve_collision(body1, body2, coll);
                     }
-                    Nothing => {}
+                    None => {}
                 }
             }
         }
     }
     fn resolve_collision(&mut self, body1: &mut Body, body2: &mut Body, collision: Collision) {
-        // let relative_impulse = (body1.mass * body1.vel - body2.mass * body2.vel) * collision.normal;
-        // let BAUMGARTE_FACTOR = 3.0;
-        // body1.apply_impulse(-0.5 * collision.normal * (relative_impulse + collision.depth * BAUMGARTE_FACTOR));
-        // body2.apply_impulse(0.5 * collision.normal * (relative_impulse + collision.depth * BAUMGARTE_FACTOR));
         let r1 = collision.pos - body1.pos;
         let r2 = collision.pos - body2.pos;
-        let relative_velocity = collision.normal * (body1.vel_at(r1) - body2.vel_at(r2)) + collision.depth;
-        dbg!(collision.pos);
+        let relative_velocity = collision.normal * (body1.vel_at(r1) - body2.vel_at(r2)) + collision.depth * BAUMGARTE_FACTOR;
         let rn1 = r1 * collision.normal;
         let rn2 = r2 * collision.normal;
         let inv_m1 = if body1.is_static { 0.0 } else { 1.0 / body1.mass };

@@ -3,6 +3,7 @@ use point::Point;
 use simulation::shape::Shape;
 use simulation::polygon::Polygon;
 use simulation::circle::Circle;
+use std::f64;
 
 pub struct Body {
     pub pos: Point,
@@ -85,9 +86,32 @@ pub fn get_circle(pos: Point, mass: f64, radius: f64) -> Body {
     Body::new(pos, mass, Shape::Circle(Circle{ pos: pos, radius:radius }), false)
 }
 
-pub fn get_polygon(vertices: Vec<Point>, mass: f64, is_static: bool) -> Body {
+pub fn get_polygon(vertices: Vec<Point>, mass: f64) -> Body {
     let poly = Polygon::new(vertices);
-    Body::new(poly.pos, mass, Shape::Polygon(poly), is_static)
+    Body::new(poly.pos, mass, Shape::Polygon(poly), if (mass == 0.0) { true } else { false })
+}
+
+pub fn get_rectangle(pos: Point, width: f64, height: f64, mass: f64) -> Body {
+    let vertices = [
+        Point::new(pos.x - width / 2.0, pos.y - height / 2.0),
+        Point::new(pos.x + width / 2.0, pos.y - height / 2.0),
+        Point::new(pos.x + width / 2.0, pos.y + height / 2.0),
+        Point::new(pos.x - width / 2.0, pos.y + height / 2.0),
+    ];
+    get_polygon(vertices.to_vec(), mass)
+}
+
+pub fn get_regular_polygon(pos: Point, radius: f64, num_vertices: usize, mass: f64) -> Body {
+    let mut vertices = vec![];
+    for j in 0..num_vertices {
+        let angle = 2.0 * f64::consts::PI * (j as f64) / (num_vertices as f64);
+        vertices.push(Point{
+            x: pos.x + radius * angle.cos(),
+            y: pos.y + radius * angle.sin()
+        });
+    }
+    let poly = Polygon::new(vertices);
+    Body::new(poly.pos, mass, Shape::Polygon(poly), if (mass == 0.0) { true } else { false })
 }
 
 impl fmt::Debug for Body {

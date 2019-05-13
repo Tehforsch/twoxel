@@ -74,6 +74,7 @@ impl Polygon {
 #[cfg(test)]
 mod tests{
     use super::*;
+    use std::f64;
     #[test] 
     fn test_projection() {
         let mut vertices = vec![];
@@ -85,5 +86,31 @@ mod tests{
         let projection = poly.project(Point::new(1.0, 0.0));
         assert_eq!(projection[0], 0.0);
         assert_eq!(projection[1], 1.0);
+    }
+
+    #[test]
+    fn test_moment_of_inertia_square() {
+        let mut vertices = vec![];
+        vertices.push(Point::new(0.0, 0.0));
+        vertices.push(Point::new(1.0, 0.0));
+        vertices.push(Point::new(1.0, 1.0));
+        vertices.push(Point::new(0.0, 1.0));
+        let poly = Polygon::new(vertices);
+        assert!((poly.get_moment_of_inertia() - 1.0/6.0).abs() < 0.00001);
+    }
+
+    #[test]
+    fn test_moment_of_inertia_almost_circle() {
+        let mut points = vec![];
+        let num_points = 10000;
+        for j in 0..num_points {
+            let angle = 2.0 * f64::consts::PI * (j as f64) / (num_points as f64);
+            points.push(Point{
+                x: angle.cos(),
+                y: angle.sin()
+            });
+        }
+        let poly = Polygon::new(points);
+        assert!((poly.get_moment_of_inertia() - 1.0/2.0).abs() < 0.0001);
     }
 }

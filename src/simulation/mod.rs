@@ -12,7 +12,8 @@ pub mod circle;
 use std::f64;
 
 const DT : f64 = 0.01;
-const GRAVITY : f64 = 1.0;
+const GRAVITY : f64 = 10.0;
+const BAUMGARTE_FACTOR : f64 = 5.0;
 
 pub struct Simulation {
     pub bodies : Vec<body::Body>,
@@ -23,7 +24,9 @@ impl Simulation {
     pub fn timestep(&mut self) {
         self.handle_gravity();
         // self.collision_handler.find_collisions(&mut self.bodies);
-        self.collision_handler.resolve_collisions(&mut self.bodies);
+        for _ in 1..10 {
+            self.collision_handler.resolve_collisions(&mut self.bodies);
+        }
         self.integrate();
     }
 
@@ -68,8 +71,8 @@ pub fn test_collision_1() -> Simulation {
         Point::new(1.0, 4.0),
         Point::new(0.0, 4.0)
     ];
-    bodies.push(body::get_polygon(vertices_1.to_vec(), 1.0, false));
-    bodies.push(body::get_polygon(vertices_2.to_vec(), 1.0, true));
+    bodies.push(body::get_rectangle(Point::new(0.5, 0.5), 1.0, 1.0, 1.0));
+    bodies.push(body::get_rectangle(Point::new(0.5, 2.5), 1.0, 1.0, 0.0));
     bodies[0].apos = 1.0;
     let mut sim = Simulation::new(bodies);
     sim
@@ -77,32 +80,32 @@ pub fn test_collision_1() -> Simulation {
 
 pub fn test_collision_2() -> Simulation {
     let mut bodies : Vec<body::Body> = vec![];
-    let num_polygons = 3;
+    let num_polygons = 10;
     for i in 0..num_polygons {
-        let x = 0.1;
-        let y = 0.1 + (i as f64) * 0.3;
-        // let mass = 1.0;
-        let mass = if (i == 0) { 1.0 } else { 1.0 };
-        let radius = 1.0;
-        let num_vertices = 3 + i;
-        let mut points = vec![];
-        for j in 0..num_vertices {
-            let angle = 2.0 * f64::consts::PI * (0.5 + 0.2 * i as f64 + j as f64) / (num_vertices as f64);
-            points.push(Point{
-                x: x + radius * angle.cos(),
-                y: y + radius * angle.sin()
-            });
-        }
-        bodies.push(body::get_polygon(points, mass, false));
+        let x = 0.1 + (i as f64) * 0.3;
+        let y = -5.0 + (i as f64) * 1.3;
+        let mass = 1.0;
+        let radius = 0.5;
+        bodies.push(body::get_regular_polygon(Point::new(x, y), radius, 3+i, mass));
     }
-    let vertices = [
-        Point::new(-5.0, 10.0),
-        Point::new(5.0, 10.0),
-        Point::new(5.0, 11.0),
-        Point::new(-5.0, 11.0)
-    ];
-    bodies.push(body::get_polygon(vertices.to_vec(), 1.0, true));
+    bodies.push(body::get_rectangle(Point::new(0.0, 10.0), 30.0, 3.0, 0.0));
     let mut sim = Simulation::new(bodies);
     sim
 }
 
+pub fn test_collision_3() -> Simulation {
+    let mut bodies : Vec<body::Body> = vec![];
+    let num_polygons = 20;
+    for i in 0..num_polygons {
+        let x = 0.1 + (i as f64) * 0.1;
+        let y = 0.0 - (i as f64) * 2.3;
+        let mass = 1.0;
+        let radius = 1.5;
+        bodies.push(body::get_regular_polygon(Point::new(x, y), radius, 3+i%3, mass));
+    }
+    bodies.push(body::get_rectangle(Point::new(0.0, 10.0), 30.0, 1.0, 0.0));
+    bodies.push(body::get_rectangle(Point::new(-5.0, 0.0), 1.0, 30.0, 0.0));
+    bodies.push(body::get_rectangle(Point::new(5.0, 0.0), 1.0, 30.0, 0.0));
+    let mut sim = Simulation::new(bodies);
+    sim
+}

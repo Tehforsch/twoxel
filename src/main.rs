@@ -24,7 +24,7 @@ fn main() {
 
     let mut gl = GlGraphics::new(opengl);
 
-    let mut sim = simulation::test_collision_2();
+    let mut sim = simulation::test_collision_3();
 
     let dimensions = window.output_color.get_dimensions();
     let window_dimensions = Point{x: (dimensions.0 as f64), y: (dimensions.1 as f64)};
