@@ -100,6 +100,16 @@ mod tests{
     }
 
     #[test]
+    fn test_moment_of_inertia_square_shifted() {
+        let mut vertices = vec![];
+        vertices.push(Point::new(1.0, 0.0));
+        vertices.push(Point::new(2.0, 0.0));
+        vertices.push(Point::new(2.0, 1.0));
+        vertices.push(Point::new(1.0, 1.0));
+        let poly = Polygon::new(vertices);
+        assert!((poly.get_moment_of_inertia() - 1.0/6.0).abs() < 0.00001);
+    }
+    #[test]
     fn test_moment_of_inertia_almost_circle() {
         let mut points = vec![];
         let num_points = 10000;

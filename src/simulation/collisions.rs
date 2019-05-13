@@ -7,15 +7,46 @@ use simulation::circle::Circle;
 use point::Point;
 use super::BAUMGARTE_FACTOR;
 
+// https://stackoverflow.com/questions/30073684/how-to-get-mutable-references-to-two-array-elements-at-the-same-time/30075629
+enum Pair<T> {
+    Both(T, T),
+    One(T),
+    None,
+}
+
+fn index_twice<T>(slc: &mut [T], a: usize, b: usize) -> Pair<&mut T> {
+    if a == b {
+        slc.get_mut(a).map_or(Pair::None, Pair::One)
+    } else {
+        if a >= slc.len() || b >= slc.len() {
+            Pair::None
+        } else {
+            // safe because a, b are in bounds and distinct
+            unsafe {
+                let ar = &mut *(slc.get_unchecked_mut(a) as *mut _);
+                let br = &mut *(slc.get_unchecked_mut(b) as *mut _);
+                Pair::Both(ar, br)
+            }
+        }
+    }
+}
+
 pub struct CollisionHandler {
     pub collisions: Vec<Collision>
 }
 
-#[derive(Debug)]
-pub struct Collision {
+#[derive(Debug, Clone, Copy)]
+pub struct CollisionInfo {
     pub pos: Point,
     pub depth: f64,
     pub normal: Point,
+}
+
+#[derive(Debug)]
+pub struct Collision {
+    pub info: CollisionInfo,
+    pub body1: usize,
+    pub body2: usize
 }
 
 impl CollisionHandler{
@@ -25,44 +56,38 @@ impl CollisionHandler{
         }
     }
 
-    // pub fn find_collisions(&mut self, bodies: &mut Vec<Body>) {
-    //     self.collisions = vec![];
-    //     let slice = &bodies[..];
-    //     let length = slice.len();
-    //     let mut collision = None;
-    //     for i in 1..length {
-    //         let (first, second) = slice.split_at(i);
-    //         let first_length = first.len();
-    //         let body1 = & first[first_length-1];
-    //         for body2 in second {
-    //             collision = find_collision(body1, body2);
-    //         }
-    //     }
-    //     match collision {
-    //         Some(c) => { self.collisions.push(c); }
-    //         None => {}
-    //     }
-    // }
-
-    pub fn resolve_collisions(&mut self, bodies: &mut Vec<Body>) {
-        let slice = &mut bodies[..];
+    pub fn find_collisions(&mut self, bodies: &mut Vec<Body>) {
+        self.collisions = vec![];
+        let slice = &bodies[..];
         let length = slice.len();
+        let mut collision = None;
         for i in 1..length {
-            let (first, second) = slice.split_at_mut(i);
-            let first_length = first.len();
-            let mut body1 = &mut first[first_length-1];
-            for mut body2 in second {
-                let collision = find_collision(body1, body2);
-                match collision {
-                    Some(coll) => {
-                        self.resolve_collision(body1, body2, coll);
+            let (first, second) = slice.split_at(i);
+            let body1 = & first[i-1];
+            for (j, body2) in second.iter().enumerate() {
+                collision = find_collision(body1, body2);
+                collision.map(|c| self.collisions.push(
+                    Collision{
+                        info: c,
+                        body1: i-1,
+                        body2: j+i
                     }
-                    None => {}
-                }
+                ));
             }
         }
     }
-    fn resolve_collision(&mut self, body1: &mut Body, body2: &mut Body, collision: Collision) {
+
+    pub fn resolve_collisions(&self, bodies: &mut Vec<Body>) {
+        for collision in self.collisions.iter() {
+            let body_pair = index_twice(bodies, collision.body1, collision.body2);
+            match body_pair {
+                Pair::Both(b1, b2) => self.resolve_collision(b1, b2, collision.info),
+                _ => {println!("DAS SOLLTE NIE PASSIEREN HIHI");}
+            }
+        }
+    }
+
+    fn resolve_collision(&self, body1: &mut Body, body2: &mut Body, collision: CollisionInfo) {
         let r1 = collision.pos - body1.pos;
         let r2 = collision.pos - body2.pos;
         let relative_velocity = collision.normal * (body1.vel_at(r1) - body2.vel_at(r2)) + collision.depth * BAUMGARTE_FACTOR;
@@ -81,7 +106,7 @@ impl CollisionHandler{
     }
 }
 
-fn find_collision(body1: &Body, body2: &Body) -> Option<Collision> {
+fn find_collision(body1: &Body, body2: &Body) -> Option<CollisionInfo> {
     match body1.shape {
         Shape::Circle(ref circle1) => {
             match body2.shape {
@@ -115,12 +140,12 @@ fn find_collision(body1: &Body, body2: &Body) -> Option<Collision> {
 //     }
 // }
 
-fn circle_circle(circle1: &Circle, circle2: &Circle) -> Option<Collision> {
+fn circle_circle(circle1: &Circle, circle2: &Circle) -> Option<CollisionInfo> {
     None
 }
 
-fn polygon_polygon(polygon1: &Polygon, polygon2: &Polygon) -> Option<Collision> {
-    let mut min_depth_collision: Option<Collision> = None;
+fn polygon_polygon(polygon1: &Polygon, polygon2: &Polygon) -> Option<CollisionInfo> {
+    let mut min_depth_collision: Option<CollisionInfo> = None;
     let mut collision_normal_is_from_polygon1 = true;
     for (i, edge) in polygon1.get_normals().iter().chain(polygon2.get_normals().iter()).enumerate() {
         let projection1 = polygon1.project(*edge);
@@ -147,7 +172,7 @@ fn polygon_polygon(polygon1: &Polygon, polygon2: &Polygon) -> Option<Collision> 
                     true =>  { get_collision_pos(polygon2, reversed_normal) }
                     false => { get_collision_pos(polygon1, -reversed_normal) }
                 };
-                min_depth_collision = Some(Collision{
+                min_depth_collision = Some(CollisionInfo{
                     depth: depth, 
                     pos: collision_pos,
                     normal: reversed_normal

@@ -116,6 +116,11 @@ pub fn get_regular_polygon(pos: Point, radius: f64, num_vertices: usize, mass: f
 
 impl fmt::Debug for Body {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.pos.x, self.pos.y)
+        if self.is_static {
+            write!(f, "Wall at ({}, {}) with mass {} and inertia {}", self.pos.x, self.pos.y, self.mass, self.inertia)
+        }
+        else {
+            write!(f, "Body at ({}, {}) with mass {} and inertia {}", self.pos.x, self.pos.y, self.mass, self.inertia)
+        }
     }
 }
