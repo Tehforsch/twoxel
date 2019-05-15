@@ -29,10 +29,10 @@ impl Renderer {
                 _ => {}
             }
         }
-        // for coll in &sim.collision_handler.collisions {
-            // line(&self.transform(coll.info.pos), &self.transform(coll.info.pos + coll.info.normal * coll.info.depth), [0.0, 1.0, 0.0, 1.0], context, gl);
-            // circle(self.transform(coll.info.pos), 3.0, [0.0, 1.0, 0.0, 1.0], context, gl);
-        // }
+        for coll in &sim.collision_handler.collisions {
+            line(&self.transform(coll.info.pos), &self.transform(coll.info.pos + coll.info.normal * coll.info.depth), [0.0, 1.0, 0.0, 1.0], context, gl);
+            circle(self.transform(coll.info.pos), 3.0, [0.0, 1.0, 0.0, 1.0], context, gl);
+        }
     }
 
     pub fn transform(&self, point: Point) -> Point {

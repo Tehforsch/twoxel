@@ -41,12 +41,9 @@ fn main() {
             }
 
             Input::Move(Motion::MouseCursor(x, y)) => {
-                // move_body(&mut sim, x, y);
+                move_body(&mut sim, x, y);
             }
 
-            Input::Move(Motion::MouseCursor(x, y)) => {
-                // move_body(&mut sim, x, y);
-            }
             _ => {}
         }
         e.mouse_scroll(|dx, dy| renderer.scale_factor = zoom(dy, renderer.scale_factor));
@@ -60,7 +57,7 @@ fn zoom(dy: f64, scale_factor: f64) -> f64 {
 fn move_body(sim: &mut simulation::Simulation, x: f64, y: f64) {
     match sim.bodies.get_mut(0) {
         Some(body) => { 
-            body.pos = point::Point{x:x, y:y}; 
+            body.pos = (point::Point{x:x, y:y} - Point::new(400.0, 400.0)) / 30.0; 
         }
         _ => {}
     }

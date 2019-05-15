@@ -13,8 +13,12 @@ use std::f64;
 
 const DT : f64 = 0.01;
 const GRAVITY : f64 = 10.0;
+// const GRAVITY : f64 = 0.0;
+const GRAVITY_DIR : Point = Point{x: 0.0, y: 1.0};
 const BAUMGARTE_FACTOR : f64 = 10.0;
-const NUM_ITERATIONS: usize = 100;
+const NUM_ITERATIONS: usize = 1;
+const COLLISION_MARGIN: f64 = 0.1;
+// const COLLISION_MARGIN: f64 = 0.0;
 
 pub struct Simulation {
     pub bodies : Vec<body::Body>,
@@ -54,24 +58,12 @@ impl Simulation {
 fn apply_gravity(body : &mut body::Body) {
     // let force = GRAVITY * body.mass * Point{x: 0.0, y: 1.0};
     // let force = GRAVITY * body.mass * (Point::new(0.0, 0.0) - body.pos);
-    let force = GRAVITY * body.mass * Point::new(0.0, 1.0);
+    let force = GRAVITY * body.mass * GRAVITY_DIR;
     body.apply_force(force);
 }
 
 pub fn test_collision_1() -> Simulation {
     let mut bodies : Vec<body::Body> = vec![];
-    let vertices_1 = [
-        Point::new(0.0, 0.0),
-        Point::new(1.0, 0.0),
-        Point::new(1.0, 1.0),
-        Point::new(0.0, 1.0)
-    ];
-    let vertices_2 = [
-        Point::new(0.0, 3.0),
-        Point::new(1.0, 3.0),
-        Point::new(1.0, 4.0),
-        Point::new(0.0, 4.0)
-    ];
     bodies.push(body::get_rectangle(Point::new(0.5, 0.5), 1.0, 1.0, 1.0));
     bodies.push(body::get_rectangle(Point::new(0.5, 2.5), 1.0, 1.0, 0.0));
     bodies[0].apos = 1.0;
@@ -108,6 +100,17 @@ pub fn test_collision_3() -> Simulation {
     bodies.push(body::get_rectangle(Point::new(0.0, 10.0), 30.0, 1.0, 0.0));
     bodies.push(body::get_rectangle(Point::new(-5.0, 0.0), 1.0, 30.0, 0.0));
     bodies.push(body::get_rectangle(Point::new(5.0, 0.0), 1.0, 30.0, 0.0));
+    let mut sim = Simulation::new(bodies);
+    sim
+}
+
+pub fn test_collision_4() -> Simulation {
+    let mut bodies : Vec<body::Body> = vec![];
+    let num_boxes = 20;
+    for i in 0..num_boxes {
+        bodies.push(body::get_rectangle(Point::new(0.5, 0.5 - 1.4 * (i as f64)), 1.0, 1.0, 1.0));
+    }
+    bodies.push(body::get_rectangle(Point::new(0.5, 4.5), 5.0, 5.0, 0.0));
     let mut sim = Simulation::new(bodies);
     sim
 }

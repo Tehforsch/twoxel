@@ -15,7 +15,7 @@ pub struct Body {
     pub mass: f64,
     pub inertia: f64,
     pub shape: Shape,
-    pub is_static: bool
+    pub is_static: bool,
 }
 
 impl Body {
@@ -68,17 +68,34 @@ impl Body {
 
     pub fn new(pos: Point, mass: f64, shape: Shape, is_static: bool) -> Body {
         Body {
-            pos: pos,
-            mass: mass,
+            pos,
+            mass,
             vel: Point { x: 0.0, y: 0.0 },
             acc: Point { x: 0.0, y: 0.0 },
             apos: 0.0,
             avel: 0.0,
             aacc: 0.0,
             inertia: shape.get_moment_of_inertia() * mass,
-            shape: shape,
-            is_static: is_static
+            shape,
+            is_static,
         }
+    }
+
+    pub fn inv_quantity(&self, quantity: f64) -> f64 {
+        if self.is_static {
+            0.0
+        }
+        else {
+            1.0 / quantity
+        }
+    }
+
+    pub fn inv_mass(&self) -> f64 {
+        return self.inv_quantity(self.mass)
+    }
+
+    pub fn inv_inertia(&self) -> f64 {
+        return self.inv_quantity(self.inertia)
     }
 }
 
