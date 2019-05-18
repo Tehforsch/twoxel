@@ -6,6 +6,7 @@ use point::Point;
 pub mod body;
 pub mod shape;
 pub mod collisions;
+pub mod collision_detection;
 pub mod polygon;
 pub mod circle;
 
@@ -15,10 +16,12 @@ const DT : f64 = 0.01;
 const GRAVITY : f64 = 10.0;
 // const GRAVITY : f64 = 0.0;
 const GRAVITY_DIR : Point = Point{x: 0.0, y: 1.0};
-const BAUMGARTE_FACTOR : f64 = 10.0;
-const NUM_ITERATIONS: usize = 1;
-const COLLISION_MARGIN: f64 = 0.1;
+const BAUMGARTE_FACTOR : f64 = 0.2;
+const NUM_ITERATIONS: usize = 200;
+const COLLISION_MARGIN: f64 = 0.05;
+const ALLOWED_PENETRATION: f64 = 0.02;
 // const COLLISION_MARGIN: f64 = 0.0;
+const FRICTION: f64 = 1.0;
 
 pub struct Simulation {
     pub bodies : Vec<body::Body>,
@@ -28,10 +31,7 @@ pub struct Simulation {
 impl Simulation {
     pub fn timestep(&mut self) {
         self.handle_gravity();
-        self.collision_handler.find_collisions(&mut self.bodies);
-        for _ in 0..NUM_ITERATIONS {
-            self.collision_handler.resolve_collisions(&mut self.bodies);
-        }
+        self.collision_handler.timestep(&mut self.bodies);
         self.integrate();
     }
 
@@ -108,9 +108,12 @@ pub fn test_collision_4() -> Simulation {
     let mut bodies : Vec<body::Body> = vec![];
     let num_boxes = 20;
     for i in 0..num_boxes {
-        bodies.push(body::get_rectangle(Point::new(0.5, 0.5 - 1.4 * (i as f64)), 1.0, 1.0, 1.0));
+        bodies.push(body::get_rectangle(Point::new(0.5, 8.5 - 1.4 * (i as f64)), 1.0, 1.0, 1.0));
     }
-    bodies.push(body::get_rectangle(Point::new(0.5, 4.5), 5.0, 5.0, 0.0));
+    // bodies.push(body::get_rectangle(Point::new(0.5, 4.5), 5.0, 5.0, 0.0));
+    bodies.push(body::get_rectangle(Point::new(0.0, 10.0), 30.0, 1.0, 0.0));
+    bodies.push(body::get_rectangle(Point::new(-5.0, 0.0), 1.0, 30.0, 0.0));
+    bodies.push(body::get_rectangle(Point::new(5.0, 0.0), 1.0, 30.0, 0.0));
     let mut sim = Simulation::new(bodies);
     sim
 }
